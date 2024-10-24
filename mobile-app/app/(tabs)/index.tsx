@@ -1,70 +1,60 @@
-import { Image, StyleSheet, Platform } from 'react-native';
+import React, { useEffect, useState } from "react";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { View, Text } from "react-native";
+import Header from "@/components/Header";
+import NewsCard from "@/components/NewsCard";
+import useFetch from "@/hooks/customHooks/useFetch";
+import { SwipeListView } from "react-native-swipe-list-view";
+import DeleteIcon from "@/assets/icons/DeleteIcon";
+import PinIcon from "@/assets/icons/PinIcon";
+import { styles } from "./Home.style";
 
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
+const HomeScreen = () => {
+  const [newsData, setNewsData] = useState([]);
+  const fromDate = "2024-10-10"; // Example date
+  const toDate = "2024-10-20";
 
-export default function HomeScreen() {
+  const teslaUrl = `https://asia-south1-kc-stage-rp.cloudfunctions.net/globalNews?endpoint=everything&q=tesla&from=${fromDate}&sortBy=publishedAt`;
+  const {
+    data: teslaNews,
+    loading: teslaLoading,
+    error: teslaError,
+  } = useFetch(teslaUrl);
+
+  useEffect(() => {
+    setNewsData(teslaNews?.articles);
+  }, [teslaNews]);
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
+    <SafeAreaView style={{ flex: 1 }}>
+      <Header />
+      <View style={{ flex: 1, backgroundColor: "#FFFFFF" }}>
+        <SwipeListView
+          data={newsData}
+          renderItem={(data, rowMap) => (
+            <View style={styles.cardContainer}>
+              <NewsCard />
+            </View>
+          )}
+          renderHiddenItem={(data, rowMap) => (
+            <View style={styles.hiddenMain}>
+              <View style={styles.hiddenContainer}>
+                <View style={styles.IconContainer}>
+                  <DeleteIcon />
+                  <Text style={styles.IconText}>Delete</Text>
+                </View>
+                <View style={styles.IconContainer}>
+                  <PinIcon />
+                  <Text style={styles.IconText}>Pin</Text>
+                </View>
+              </View>
+            </View>
+          )}
+          disableRightSwipe={true}
+          rightOpenValue={-75}
         />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({ ios: 'cmd + d', android: 'cmd + m' })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          Tap the Explore tab to learn more about what's included in this starter app.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          When you're ready, run{' '}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+      </View>
+    </SafeAreaView>
   );
-}
-
-const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
-  },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
-  },
-});
+};
+export default HomeScreen;
