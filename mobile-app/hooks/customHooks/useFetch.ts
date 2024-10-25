@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 interface Source {
   id: string | null;
@@ -39,6 +40,10 @@ const useFetch = (url: string) => {
         }
 
         const result: ApiResponse = await response.json();
+        await AsyncStorage.setItem(
+          "headlines",
+          JSON.stringify(result.articles)
+        );
         setData(result);
       } catch (err: any) {
         setError(err.message);

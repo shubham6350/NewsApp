@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { View, Text } from "react-native";
+import { View, Text, TouchableOpacity } from "react-native";
 import Header from "@/components/Header";
 import NewsCard from "@/components/NewsCard";
 import useFetch from "@/hooks/customHooks/useFetch";
@@ -39,14 +39,14 @@ const HomeScreen = () => {
           renderHiddenItem={(data, rowMap) => (
             <View style={styles.hiddenMain}>
               <View style={styles.hiddenContainer}>
-                <View style={styles.IconContainer}>
+                <TouchableOpacity style={styles.IconContainer}>
                   <DeleteIcon />
                   <Text style={styles.IconText}>Delete</Text>
-                </View>
-                <View style={styles.IconContainer}>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.IconContainer}>
                   <PinIcon />
                   <Text style={styles.IconText}>Pin</Text>
-                </View>
+                </TouchableOpacity>
               </View>
             </View>
           )}
