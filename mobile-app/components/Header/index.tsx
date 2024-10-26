@@ -13,7 +13,7 @@ const Header: FC<headerPropTypes> = ({ onPressRefreshButton }) => {
     <View style={styles.main}>
       <View style={styles.content}>
         <LogoIcon />
-        <TouchableOpacity>
+        <TouchableOpacity onPress={onPressRefreshButton}>
           <RefreshIcon />
         </TouchableOpacity>
       </View>

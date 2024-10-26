@@ -19,41 +19,49 @@ interface ApiResponse {
   articles: Article[];
 }
 
-const useFetch = (url: string) => {
+const useFetch = (url: string, delay: number = 500) => {
   const [data, setData] = useState<ApiResponse | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        const response = await fetch(url, {
-          method: "POST",
-          headers: {
-            Accept: "application/json, text/plain, */*",
-          },
-        });
+    // Debouncing function
+    const handler = setTimeout(() => {
+      const fetchData = async () => {
+        try {
+          setLoading(true);
+          const response = await fetch(url, {
+            method: "GET",
+            headers: {
+              Accept: "application/json, text/plain, */*",
+            },
+          });
 
-        if (!response.ok) {
-          throw new Error("Error fetching data");
+          if (!response.ok) {
+            throw new Error("Error fetching data");
+          }
+
+          const result: ApiResponse = await response.json();
+
+          await AsyncStorage.setItem(
+            "headlines",
+            JSON.stringify(result.articles)
+          );
+          setData(result);
+        } catch (err: any) {
+          setError(err.message);
+        } finally {
+          setLoading(false);
         }
+      };
 
-        const result: ApiResponse = await response.json();
-        await AsyncStorage.setItem(
-          "headlines",
-          JSON.stringify(result.articles)
-        );
-        setData(result);
-      } catch (err: any) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
+      fetchData();
+    }, delay);
+
+    return () => {
+      clearTimeout(handler);
     };
-
-    fetchData();
-  }, [url]);
+  }, [url, delay]);
 
   return { data, loading, error };
 };

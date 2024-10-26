@@ -37,10 +37,7 @@ const NewsCard = ({ data, isPinned }: any) => {
         </View>
         <View style={styles.description}>
           <View style={{ maxWidth: 250 }}>
-            <Text style={styles.descriptionText}>
-              Recession is coming — and a raft of companies will fail, warns
-              elite investor...
-            </Text>
+            <Text style={styles.descriptionText}>{data?.title}</Text>
           </View>
           <Image source={{ uri: data?.urlToImage }} style={styles.image} />
         </View>

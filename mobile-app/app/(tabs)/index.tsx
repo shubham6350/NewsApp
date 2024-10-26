@@ -1,6 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { View, Text, TouchableOpacity, FlatList } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  FlatList,
+  ActivityIndicator,
+} from "react-native";
 import Header from "@/components/Header";
 import NewsCard from "@/components/NewsCard";
 import useFetch from "@/hooks/customHooks/useFetch";
@@ -28,14 +34,13 @@ interface Article {
 }
 
 const HomeScreen = () => {
-  const fromDate = new Date();
-  const url = `https://asia-south1-kc-stage-rp.cloudfunctions.net/globalNews?endpoint=everything&q=tesla&from=${fromDate}&sortBy=publishedAt`;
-  const { data, loading, error } = useFetch(url);
+  const url = `https://newsapi.org/v2/everything?q=apple&from=2024-10-25&to=2024-10-25&sortBy=popularity&apiKey=01635986b74747c9b0b71cb568efcfd4`;
+  const { data, loading, error } = useFetch(url, 10000);
   const [headlines, setHeadlines] = useState<Article[]>([]);
   const [pinnedHeadlines, setPinnedHeadlines] = useState<Article[]>([]);
   const [currentIndex, setCurrentIndex] = useState(10);
+  const [isloading, setIsLoading] = useState(false);
   const [timerId, setTimerId] = useState<NodeJS.Timeout | null>(null);
-  const [newsData, setNewsData] = useState([]);
 
   useEffect(() => {
     const loadHeadlines = async () => {
@@ -49,26 +54,55 @@ const HomeScreen = () => {
     loadHeadlines();
   }, []);
 
-  // useEffect(() => {
-  //   const id = setInterval(async () => {
-  //     const storedHeadlines = await AsyncStorage.getItem("headlines");
-  //     if (storedHeadlines) {
-  //       const parsedHeadlines: Article[] = JSON.parse(storedHeadlines);
-  //       const newBatch = parsedHeadlines.slice(currentIndex, currentIndex + 5);
-  //       setHeadlines((prevHeadlines) => [...newBatch, ...prevHeadlines]);
-  //       setCurrentIndex((prevIndex) => prevIndex + 5);
+  useEffect(() => {
+    const id = setInterval(() => {
+      fetchNextBatch(false); // Automatic fetch every 10 seconds
+    }, 10000); // 10 seconds interval
 
-  //       // Reset AsyncStorage when all headlines are displayed
-  //       if (currentIndex >= parsedHeadlines.length) {
-  //         clearInterval(id);
-  //         await AsyncStorage.removeItem("headlines");
-  //       }
-  //     }
-  //   }, 10000); // 10 seconds interval
+    setTimerId(id);
+    return () => clearInterval(id);
+  }, [currentIndex]);
 
-  //   setTimerId(id);
-  //   return () => clearInterval(id);
-  // }, [currentIndex]);
+  const fetchNextBatch = async (isManual: boolean) => {
+    if (isManual) setIsLoading(true);
+    const storedHeadlines = await AsyncStorage.getItem("headlines");
+    if (storedHeadlines) {
+      const parsedHeadlines: Article[] = JSON.parse(storedHeadlines);
+      const newBatch = parsedHeadlines.slice(currentIndex, currentIndex + 5);
+
+      // Handle automatic fetch: replace top 5 headlines with new batch
+      if (!isManual) {
+        if (newBatch.length > 0) {
+          setHeadlines((prevHeadlines) => {
+            const updatedHeadlines = [...newBatch, ...prevHeadlines.slice(5)];
+            return updatedHeadlines.length > 10
+              ? updatedHeadlines.slice(0, 10)
+              : updatedHeadlines;
+          });
+          setCurrentIndex((prevIndex) => prevIndex + 5);
+        }
+
+        // Reset AsyncStorage when all headlines are displayed
+        if (currentIndex + 5 >= parsedHeadlines.length) {
+          await AsyncStorage.removeItem("headlines");
+          setHeadlines([]);
+          setCurrentIndex(0);
+        }
+      } else {
+        // Handle manual fetch: append new batch
+        if (newBatch.length > 0) {
+          setHeadlines((prevHeadlines) => {
+            const updatedHeadlines = [...prevHeadlines, ...newBatch];
+            return updatedHeadlines.length > 10
+              ? updatedHeadlines.slice(0, 10)
+              : updatedHeadlines;
+          });
+          setCurrentIndex((prevIndex) => prevIndex + 5);
+        }
+      }
+    }
+    if (isManual) setIsLoading(false);
+  };
 
   const handlePressDelete = (article: Article) => {
     setHeadlines((prevHeadlines) =>
@@ -116,15 +150,24 @@ const HomeScreen = () => {
     );
   };
 
+  if (isloading || loading) {
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <ActivityIndicator size={"large"} color={"black"} />
+      </View>
+    );
+  }
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaView style={{ flex: 1 }}>
-        <Header />
-        <View style={{ flex: 1, backgroundColor: "#FFFFFF" }}>
+        <Header onPressRefreshButton={() => fetchNextBatch(true)} />
+        <View style={{ flex: 1 }}>
           <FlatList
             data={[...pinnedHeadlines, ...headlines]}
             keyExtractor={(item, index) => item.title + index}
             renderItem={renderItem}
+            showsVerticalScrollIndicator={false}
           />
         </View>
       </SafeAreaView>
