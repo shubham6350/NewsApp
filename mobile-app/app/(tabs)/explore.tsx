@@ -34,8 +34,12 @@ interface Article {
 }
 
 const TeslaScreen = () => {
-  const url = `https://newsapi.org/v2/everything?q=tesla&from=2024-09-26&sortBy=publishedAt&apiKey=01635986b74747c9b0b71cb568efcfd4`;
-  const { data, loading, error } = useFetch(url, 10000);
+  const API_KEY = process.env.API_KEY;
+  const { data, loading, error } = useFetch({
+    fromDate: new Date(),
+    url: `https://newsapi.org/v2/everything?q=tesla&sortBy=publishedAt&apiKey=${API_KEY}`,
+    delay: 5000,
+  });
   const [headlines, setHeadlines] = useState<Article[]>([]);
   const [pinnedHeadlines, setPinnedHeadlines] = useState<Article[]>([]);
   const [currentIndex, setCurrentIndex] = useState(10);
@@ -44,7 +48,7 @@ const TeslaScreen = () => {
 
   useEffect(() => {
     const loadHeadlines = async () => {
-      const storedHeadlines = await AsyncStorage.getItem("headlines");
+      const storedHeadlines = await AsyncStorage.getItem("Teslaheadlines");
       if (storedHeadlines) {
         const parsedHeadlines: Article[] = JSON.parse(storedHeadlines);
         setHeadlines(parsedHeadlines.slice(0, 10)); // Initially show the first 10 headlines
@@ -65,7 +69,7 @@ const TeslaScreen = () => {
 
   const fetchNextBatch = async (isManual: boolean) => {
     if (isManual) setIsLoading(true);
-    const storedHeadlines = await AsyncStorage.getItem("headlines");
+    const storedHeadlines = await AsyncStorage.getItem("Appleheadlines");
     if (storedHeadlines) {
       const parsedHeadlines: Article[] = JSON.parse(storedHeadlines);
       const newBatch = parsedHeadlines.slice(currentIndex, currentIndex + 5);
@@ -151,11 +155,9 @@ const TeslaScreen = () => {
   };
 
   if (isloading || loading) {
-    return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <ActivityIndicator size={"large"} color={"black"} />
-      </View>
-    );
+    <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+      <ActivityIndicator size={"large"} color={"black"} />
+    </View>;
   }
 
   return (

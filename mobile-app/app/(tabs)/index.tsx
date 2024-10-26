@@ -34,8 +34,13 @@ interface Article {
 }
 
 const HomeScreen = () => {
-  const url = `https://newsapi.org/v2/everything?q=apple&from=2024-10-25&to=2024-10-25&sortBy=popularity&apiKey=01635986b74747c9b0b71cb568efcfd4`;
-  const { data, loading, error } = useFetch(url, 10000);
+  const API_KEY = process.env.API_KEY;
+  const { data, loading, error } = useFetch({
+    fromDate: new Date(),
+    toDate: new Date(),
+    url: `https://newsapi.org/v2/everything?q=apple&sortBy=popularity&apiKey=${API_KEY}`,
+    delay: 5000,
+  });
   const [headlines, setHeadlines] = useState<Article[]>([]);
   const [pinnedHeadlines, setPinnedHeadlines] = useState<Article[]>([]);
   const [currentIndex, setCurrentIndex] = useState(10);
@@ -44,7 +49,7 @@ const HomeScreen = () => {
 
   useEffect(() => {
     const loadHeadlines = async () => {
-      const storedHeadlines = await AsyncStorage.getItem("headlines");
+      const storedHeadlines = await AsyncStorage.getItem("Appleheadlines");
       if (storedHeadlines) {
         const parsedHeadlines: Article[] = JSON.parse(storedHeadlines);
         setHeadlines(parsedHeadlines.slice(0, 10)); // Initially show the first 10 headlines
@@ -65,7 +70,7 @@ const HomeScreen = () => {
 
   const fetchNextBatch = async (isManual: boolean) => {
     if (isManual) setIsLoading(true);
-    const storedHeadlines = await AsyncStorage.getItem("headlines");
+    const storedHeadlines = await AsyncStorage.getItem("Appleheadlines");
     if (storedHeadlines) {
       const parsedHeadlines: Article[] = JSON.parse(storedHeadlines);
       const newBatch = parsedHeadlines.slice(currentIndex, currentIndex + 5);

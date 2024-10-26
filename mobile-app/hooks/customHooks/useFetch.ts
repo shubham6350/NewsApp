@@ -19,18 +19,33 @@ interface ApiResponse {
   articles: Article[];
 }
 
-const useFetch = (url: string, delay: number = 500) => {
+interface FetchOptions {
+  url: string;
+  fromDate?: string;
+  toDate?: string;
+  delay?: number;
+}
+
+const useFetch = ({ url, fromDate, toDate, delay = 500 }: FetchOptions) => {
   const [data, setData] = useState<ApiResponse | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Debouncing function
     const handler = setTimeout(() => {
       const fetchData = async () => {
         try {
           setLoading(true);
-          const response = await fetch(url, {
+
+          // Determine storage key based on the URL
+          const storageKey = url.includes("apple")
+            ? "Appleheadlines"
+            : "Teslaheadlines";
+
+          const finalUrl = `${url}&from=${fromDate || ""}${
+            toDate ? `&to=${toDate}` : ""
+          }`;
+          const response = await fetch(finalUrl, {
             method: "GET",
             headers: {
               Accept: "application/json, text/plain, */*",
@@ -43,8 +58,9 @@ const useFetch = (url: string, delay: number = 500) => {
 
           const result: ApiResponse = await response.json();
 
+          // Store the result in AsyncStorage with the determined key
           await AsyncStorage.setItem(
-            "headlines",
+            storageKey,
             JSON.stringify(result.articles)
           );
           setData(result);
@@ -61,7 +77,7 @@ const useFetch = (url: string, delay: number = 500) => {
     return () => {
       clearTimeout(handler);
     };
-  }, [url, delay]);
+  }, [url, fromDate, toDate, delay]);
 
   return { data, loading, error };
 };
