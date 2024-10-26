@@ -1,15 +1,21 @@
-import React from "react";
-import { View, StyleSheet } from "react-native";
+import React, { FC } from "react";
+import { View, TouchableOpacity } from "react-native";
 import LogoIcon from "@/assets/icons/LogoIcon";
 import RefreshIcon from "@/assets/icons/RefreshIcon";
 import { styles } from "./Header.styles";
 
-const Header = () => {
+type headerPropTypes = {
+  onPressRefreshButton?: () => void;
+};
+
+const Header: FC<headerPropTypes> = ({ onPressRefreshButton }) => {
   return (
     <View style={styles.main}>
       <View style={styles.content}>
         <LogoIcon />
-        <RefreshIcon />
+        <TouchableOpacity>
+          <RefreshIcon />
+        </TouchableOpacity>
       </View>
     </View>
   );
