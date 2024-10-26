@@ -1,15 +1,31 @@
 import React from "react";
-import { Text, View, Image } from "react-native";
+import { Text, View, Image, TouchableOpacity } from "react-native";
 import { styles } from "./NewCard.style";
 import { parseISO, format } from "date-fns";
 import PinnedIcon from "@/assets/icons/PinnedIcon";
+import { router } from "expo-router";
 
 const NewsCard = ({ data, isPinned }: any) => {
   const date = parseISO(data?.publishedAt);
   const formattedTime = format(date, "hh:mm a");
+
+  const handlePressCard = (url: string) => {
+    router.push(url);
+  };
+
+  const truncateText = (text: string) => {
+    const words = text.split(" ");
+    if (words.length > 15) {
+      return words.slice(0, 15).join(" ") + "...";
+    }
+    return text;
+  };
   return (
     <View style={styles.main}>
-      <View style={styles.container}>
+      <TouchableOpacity
+        onPress={() => handlePressCard(data?.url)}
+        style={styles.container}
+      >
         {isPinned && (
           <View
             style={{
@@ -37,14 +53,16 @@ const NewsCard = ({ data, isPinned }: any) => {
         </View>
         <View style={styles.description}>
           <View style={{ maxWidth: 250 }}>
-            <Text style={styles.descriptionText}>{data?.title}</Text>
+            <Text style={styles.descriptionText}>
+              {truncateText(data?.title)}
+            </Text>
           </View>
           <Image source={{ uri: data?.urlToImage }} style={styles.image} />
         </View>
         <View>
           <Text style={styles.autherText}>{data?.author}</Text>
         </View>
-      </View>
+      </TouchableOpacity>
     </View>
   );
 };
